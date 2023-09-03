@@ -1,0 +1,19 @@
+---
+- name: display cpu info
+  changed_when: false
+  tasks:
+    - name: Display CPU list
+      command: "lscpu"
+      register: cpu_info
+    - name: Display Intel Hyper-Threading information
+      command: "lscpu | grep 'Thread(s) per core'"
+      register: ht_info
+      become: yes
+    - name: Display CPU Information
+      debug:
+        var: cpu_info.stdout
+      when: cpu_info.stdout is defined
+    - name: Display Hyper-Threading Information
+      debug:
+        var: ht_info.stdout
+      when: ht_info.stdout is defined

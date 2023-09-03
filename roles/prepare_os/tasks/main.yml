@@ -1,0 +1,26 @@
+---
+- tags: [prepare_os]
+  name: Prepare OS for using
+  become: yes
+  block:
+    - name: Encrypting second disk at the system
+      ansible.builtin.import_tasks: encrypting_second_disk.yml
+      tags: [prepare_os.encrypt_disk]
+
+    - name: Encrypting second partition after root at the system
+      ansible.builtin.import_tasks: encrypting_second_part.yml
+      tags: [prepare_os.encrypt_part]
+
+    - name: Preparing CPU
+      ansible.builtin.import_tasks: cpu_changes.yml
+      tags: [prepare_os.cpu]
+
+    - name: Rename active network interface
+      ansible.builtin.import_tasks: rename_active_interface.yml
+      tags: [prepare_os.network]
+
+    - name: Show information about CPU
+      ansible.builtin.import_tasks: cpu_info_show.yml
+      tags: [prepare_os.show_info]
+
+

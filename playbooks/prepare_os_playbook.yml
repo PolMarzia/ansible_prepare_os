@@ -1,0 +1,9 @@
+---
+- name: Prepare OS
+  hosts: "all"
+  gather_facts: yes
+  become: yes
+  roles:
+    - prepare_os
+
+

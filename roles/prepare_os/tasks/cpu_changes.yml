@@ -1,0 +1,19 @@
+---
+- name: preparing CPUs
+  hosts: "all"
+  become: true
+  gather_facts: false
+  tasks:
+  - name: disable C-state for CPUs
+    shell: "echo 1 > /sys/devices/system/cpu/cpuidle/state*/disable"
+    register: command_output
+
+  - debug:
+      var: command_output.stdout_lines
+
+  - name: set CPU productive mode
+    shell: "echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+    register: command_output
+
+  - debug:
+      var: command_output.stdout_lines

@@ -1,0 +1,51 @@
+---
+- name: Get the root partition
+  shell: "mount | grep 'on / ' | awk '{print $1}' | awk -F'/' '{print $NF}'"
+  register: root_partition
+  changed_when: false
+
+- name: Find the next partition
+  shell: "lsblk -l | grep 'part' | grep -A1 '{{ root_partition.stdout }}' | sed '2!d' | awk '{print $1}'"
+  register: next_partition
+  changed_when: false
+
+- name: Check encryption
+  command: cryptsetup luksDump /dev/{{next_patrition.stdout}}
+  register: encrypt_info
+  changed_when: false
+  ignore_errors: yes
+
+- name: Encryption disk
+  when: encrypt_info.rc != 0
+  become: yes
+  block:
+    - name: Generate a cryptographic key
+      command: dd if=/dev/urandom of=/root/.keyfile bs=1024 count=4
+      args:
+        creates: /root/.keyfile
+
+    - name: Set permissions on keyfile
+      file:
+        path: /root/.keyfile
+        mode: '0400'
+
+    - name: Unmount disk
+      command: umount /dev/{{ next_partition }}
+      ignore_errors: yes
+
+    - name: Encrypt the next partition using LUKS
+      community.crypto.luks_device:
+        device: "/dev/{{ next_partition }}"
+        state: "present"
+        keyfile: "/root/.keyfile"
+
+    - name: Open the encrypted partition
+      command: cryptsetup luksOpen /dev/{{ next_partition }} {{ next_partition }} --key-file /root/.keyfile
+
+    - name: Create a filesystem on the encrypted partition
+      command: mkfs.ext4 /dev/mapper/{{ next_partition }}
+
+    - name: Mount the encrypted partition
+      command: mount /dev/mapper/{{ next_partition }} /mnt/{{ next_partition }}
+      args:
+        creates: /mnt/{{ next_partition }}
