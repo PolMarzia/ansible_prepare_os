@@ -18,6 +18,7 @@
       changed_when: false
       ignore_errors: yes
 
+- block:
     - name: Unmount disk
       command: umount {{ disk_to_encrypt }}
       ignore_errors: yes
@@ -46,7 +47,11 @@
       shell: "mkfs.ext4 /dev/mapper/{{ disk_to_encrypt }}"
 
     - name: Mount the encrypted disk
-      shell: "mount /dev/mapper/enc_disk /mnt/{{ disk_to_encrypt }}"
+      ansible.builtin.mount:
+        src: "/dev/mapper/{{ disk_to_encrypt }}"
+        path: "/mnt/{{ disk_to_encrypt }}"
+        fstype: ext4
+        state: mounted
       args:
-        creates: /mnt/enc_disk
+        creates: /mnt/{{ disk_to_encrypt }}
   when: disk_exists.stat.exists and encrypt_info.rc != 0

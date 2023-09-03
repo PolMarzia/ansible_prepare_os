@@ -10,7 +10,7 @@
   changed_when: false
 
 - name: Check encryption
-  command: cryptsetup luksDump /dev/{{next_patrition.stdout}}
+  command: cryptsetup luksDump /dev/{{ next_partition.stdout }}
   register: encrypt_info
   changed_when: false
   ignore_errors: yes
@@ -46,6 +46,10 @@
       command: mkfs.ext4 /dev/mapper/{{ next_partition }}
 
     - name: Mount the encrypted partition
-      command: mount /dev/mapper/{{ next_partition }} /mnt/{{ next_partition }}
+      ansible.builtin.mount:
+        src: "/dev/mapper/{{ next_partition }}"
+        path: "/mnt/{{ next_partition }}"
+        fstype: ext4
+        state: mounted
       args:
         creates: /mnt/{{ next_partition }}
