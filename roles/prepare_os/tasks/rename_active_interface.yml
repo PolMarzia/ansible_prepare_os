@@ -1,6 +1,7 @@
 ---
 - name: rename network interface
-  tasks:
+  become: true
+  block:
   - name: find interface
     shell: "ip r l | grep default | cut -d ' ' -f 5"
     register: interface_name
@@ -11,11 +12,10 @@
     when: interface_name.stdout is defined
 
   - name: display interface info
-    shell: "ip addr show net0"
+    command: ip addr show net0
     register: name_net0
     changed_when: false
 
-  - name: display interface info
   - debug:
       var: name_interface.stdout_lines
     when: name_net0.stdout is defined
