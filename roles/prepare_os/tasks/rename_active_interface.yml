@@ -7,9 +7,20 @@
     register: interface_name
     changed_when: false
 
+  - name: add cloud-init conf file
+    shell: "cp /etc/netplan/50-cloud-init.yaml /etc/cloud/cloud.cfg.d/99-myconf.cfg"
+    args:
+      creates: /etc/cloud/cloud.cfg.d/99-myconf.cfg
+
   - name: rename interface
-    shell: "ip link set {{ interface_name.stdout }} name net0"
+    ansible.builtin.replace:
+      path: /etc/cloud/cloud.cfg.d/99-myconf.cfg
+      regexp: '{{ interface_name.stdout }}'
+      replace: 'net0'
     when: interface_name.stdout is defined
+
+  - name: reboot
+    ansible.builtin.reboot:
 
   - name: display interface info
     command: ip addr show net0
