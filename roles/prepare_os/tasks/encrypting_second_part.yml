@@ -54,5 +54,3 @@
         path: "/mnt/{{ next_partition }}"
         fstype: ext4
         state: mounted
-      args:
-        creates: /mnt/{{ next_partition }}

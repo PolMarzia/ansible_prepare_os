@@ -40,7 +40,7 @@
         keyfile: "/root/.keyfile"
 
     - name: Open the encrypted disk
-      shell: "cryptsetup luksOpen {{ disk_to_encrypt }} {{ disk_to_encrypt }} --key-file /root/.keyfile"
+      shell: "cryptsetup luksOpen {{ disk_to_encrypt }} {{ disk_to_encrypt | basename }} --key-file /root/.keyfile"
 
     - name: Create a filesystem on the encrypted disk
       community.general.filesystem:
@@ -49,10 +49,9 @@
 
     - name: Mount the encrypted disk
       ansible.builtin.mount:
-        src: "/dev/mapper/{{ disk_to_encrypt }}"
-        path: "/mnt/{{ disk_to_encrypt }}"
+        src: "/dev/mapper/{{ disk_to_encrypt | basename}}"
+        path: "/mnt/{{ disk_to_encrypt | basename}}"
         fstype: ext4
         state: mounted
-      args:
-        creates: /mnt/{{ disk_to_encrypt }}
+
   when: disk_exists.stat.exists and encrypt_info.rc != 0
