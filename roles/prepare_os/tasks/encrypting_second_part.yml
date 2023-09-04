@@ -14,6 +14,7 @@
   register: encrypt_info
   changed_when: false
   ignore_errors: yes
+  when: next_partition is defined
 
 - name: Encryption disk
   when: encrypt_info.rc != 0
@@ -30,7 +31,7 @@
         mode: '0400'
 
     - name: Unmount disk
-      command: umount /dev/{{ next_partition }}
+      shell: "umount /dev/{{ next_partition }}"
       ignore_errors: yes
 
     - name: Encrypt the next partition using LUKS
@@ -40,10 +41,10 @@
         keyfile: "/root/.keyfile"
 
     - name: Open the encrypted partition
-      command: cryptsetup luksOpen /dev/{{ next_partition }} {{ next_partition }} --key-file /root/.keyfile
+      shell: "cryptsetup luksOpen /dev/{{ next_partition }} {{ next_partition }} --key-file /root/.keyfile"
 
     - name: Create a filesystem on the encrypted partition
-      command: mkfs.ext4 /dev/mapper/{{ next_partition }}
+      shell: "mkfs.ext4 /dev/mapper/{{ next_partition }}"
 
     - name: Mount the encrypted partition
       ansible.builtin.mount:

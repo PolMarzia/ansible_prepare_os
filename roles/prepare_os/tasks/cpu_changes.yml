@@ -1,16 +1,35 @@
 ---
 - block:
-    - name: disable C-state for CPUs
-      shell: "echo 1 > /sys/devices/system/cpu/cpuidle/state*/disable"
-      register: command_output
+    - name: Enable processor.max_cstate if not exists
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX="((?:(?!processor.max_cstate=\d).)*?)"$'
+        line: 'GRUB_CMDLINE_LINUX="\1 processor.max_cstate=0"'
+        backup: true
+        backrefs: true
+      notify: reboot after update
 
-    - debug:
-        var: command_output.stdout_lines
+    - name: Enable processor.max_cstate if exists but disabled
+      lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX=(.*)processor.max_cstate=0(.*)$'
+        line: 'GRUB_CMDLINE_LINUX=\1processor.max_cstate=1\2'
+        backup: true
+        backrefs: true
+      notify: reboot after update
+  become: true
 
-    - name: set CPU productive mode
-      shell: "echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
-      register: command_output
-
-    - debug:
-        var: command_output.stdout_lines
+- block:
+    - name: Install cpufrequtils
+      ansible.builtin.package:
+        name:
+          - cpufrequtils
+        state: latest
+    - name: Turn on performance mode
+      shell: |
+        touch /etc/default/cpufrequtils
+        echo 'GOVERNOR="performance"' | sudo tee /etc/default/cpufrequtils
+        systemctl disable ondemand
+        systemctl restart cpufrequtils
+      notify: reboot after update
   become: true

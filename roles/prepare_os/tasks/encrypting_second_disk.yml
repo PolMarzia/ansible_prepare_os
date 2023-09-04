@@ -20,7 +20,7 @@
 
 - block:
     - name: Unmount disk
-      command: umount {{ disk_to_encrypt }}
+      shell: "umount {{ disk_to_encrypt }}"
       ignore_errors: yes
 
     - name: Create a cryptographic key
@@ -34,14 +34,13 @@
         mode: '0400'
 
     - name: Encrypt specified disk
-      shell: "cryptsetup luksFormat {{ disk_to_encrypt }} /root/.keyfile"
-      vars:
-        disk_to_encrypt: "{{ disk_to_encrypt }}"
+      community.crypto.luks_device:
+        device: "{{ disk_to_encrypt }}"
+        state: "present"
+        keyfile: "/root/.keyfile"
 
     - name: Open the encrypted disk
       shell: "cryptsetup luksOpen {{ disk_to_encrypt }} {{ disk_to_encrypt }} --key-file /root/.keyfile"
-      vars:
-        disk_to_encrypt: "{{ disk_to_encrypt }}"
 
     - name: Create a filesystem on the encrypted disk
       shell: "mkfs.ext4 /dev/mapper/{{ disk_to_encrypt }}"
