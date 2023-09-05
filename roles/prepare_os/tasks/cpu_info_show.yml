@@ -1,21 +1,14 @@
 ---
-- name: display cpu info
-  become: true
+- name: Display CPU info
   block:
-    - name: Display CPU list
-      command: "lscpu"
-      register: cpu_info
-      changed_when: false
-
-    - name: Display Intel Hyper-Threading information
-      shell: "lscpu | grep 'Thread(s) per core'"
-      register: ht_info
-      changed_when: false
     - name: Display CPU Information
       debug:
-        var: cpu_info.stdout
-      when: cpu_info.stdout is defined
+        var: ansible_processor
+
+    - name: Display CPU Core Count
+      debug:
+        var: ansible_processor_cores
+
     - name: Display Hyper-Threading Information
       debug:
-        var: ht_info.stdout
-      when: ht_info.stdout is defined
+        var: ansible_processor_threads_per_core

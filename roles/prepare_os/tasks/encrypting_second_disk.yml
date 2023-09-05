@@ -20,7 +20,9 @@
 
 - block:
     - name: Unmount disk
-      shell: "umount {{ disk_to_encrypt }}"
+      mount:
+        path: "{{ disk_to_encrypt }}"
+        state: unmounted
       ignore_errors: yes
 
     - name: Create a cryptographic key
@@ -40,7 +42,11 @@
         keyfile: "/root/.keyfile"
 
     - name: Open the encrypted disk
-      shell: "cryptsetup luksOpen {{ disk_to_encrypt }} {{ disk_to_encrypt | basename }} --key-file /root/.keyfile"
+      community.crypto.luks_device:
+        device: "/dev/{{ disk_to_encrypt }}"
+        state: "opened"
+        name: "{{ disk_to_encrypt | basename }}"
+        keyfile: "/root/.keyfile"
 
     - name: Create a filesystem on the encrypted disk
       community.general.filesystem:

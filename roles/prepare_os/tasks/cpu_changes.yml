@@ -25,9 +25,14 @@
         name:
           - cpufrequtils
         state: latest
+
+    - name: Create cpufrequtils file (if not exist)
+      ansible.builtin.file:
+        path: /etc/default/cpufrequtils
+        state: touch
+
     - name: Turn on performance mode
       shell: |
-        touch /etc/default/cpufrequtils
         echo 'GOVERNOR="performance"' | sudo tee /etc/default/cpufrequtils
         systemctl disable ondemand
         systemctl restart cpufrequtils

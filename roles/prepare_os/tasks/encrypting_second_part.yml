@@ -31,7 +31,9 @@
         mode: '0400'
 
     - name: Unmount disk
-      shell: "umount /dev/{{ next_partition.stdout }}"
+      mount:
+        path: "/dev/{{ next_partition.stdout }}"
+        state: unmounted
       ignore_errors: yes
 
     - name: Encrypt the next partition using LUKS
@@ -41,7 +43,11 @@
         keyfile: "/root/.keyfile"
 
     - name: Open the encrypted partition
-      shell: "cryptsetup luksOpen /dev/{{ next_partition.stdout }} {{ next_partition.stdout }} --key-file /root/.keyfile"
+      community.crypto.luks_device:
+        device: "/dev/{{ next_partition.stdout }}"
+        state: "opened"
+        name: "{{ next_partition.stdout }}"
+        keyfile: "/root/.keyfile"
 
     - name: Create a filesystem on the encrypted partition
       community.general.filesystem:
@@ -49,7 +55,7 @@
         dev: "/dev/{{ next_partition.stdout }}"
 
     - name: Mount the encrypted partition
-      ansible.builtin.mount:
+      mount:
         src: "/dev/mapper/{{ next_partition.stdout }}"
         path: "/mnt/{{ next_partition.stdout }}"
         fstype: ext4

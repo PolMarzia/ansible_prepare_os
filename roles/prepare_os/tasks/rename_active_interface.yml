@@ -7,8 +7,10 @@
     register: interface_name
     changed_when: false
 
-  - name: add cloud-init conf file
-    shell: "cp /etc/netplan/50-cloud-init.yaml /etc/cloud/cloud.cfg.d/99-myconf.cfg"
+  - name: Copy file with owner and permissions
+    ansible.builtin.copy:
+      src: /etc/netplan/50-cloud-init.yaml
+      dest: /etc/cloud/cloud.cfg.d/99-myconf.cfg
     args:
       creates: /etc/cloud/cloud.cfg.d/99-myconf.cfg
 
