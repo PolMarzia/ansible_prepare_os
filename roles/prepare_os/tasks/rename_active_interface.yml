@@ -9,10 +9,9 @@
 
   - name: Copy file with owner and permissions
     ansible.builtin.copy:
+      remote_src: true
       src: /etc/netplan/50-cloud-init.yaml
       dest: /etc/cloud/cloud.cfg.d/99-myconf.cfg
-    args:
-      creates: /etc/cloud/cloud.cfg.d/99-myconf.cfg
 
   - name: rename interface
     ansible.builtin.replace:
