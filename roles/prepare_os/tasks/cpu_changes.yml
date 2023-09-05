@@ -31,10 +31,16 @@
         path: /etc/default/cpufrequtils
         state: touch
 
-    - name: Turn on performance mode
-      shell: |
-        echo 'GOVERNOR="performance"' | sudo tee /etc/default/cpufrequtils
-        systemctl disable ondemand
-        systemctl restart cpufrequtils
+    - name: Update CPU governor
+      lineinfile:
+        path: /etc/default/cpufrequtils
+        line: 'GOVERNOR="performance"'
+        state: present
+        backup: true
+
+    - name: Restart cpufrequtils service
+      systemd:
+        name: cpufrequtils
+        state: restarted
       notify: reboot after update
   become: true
